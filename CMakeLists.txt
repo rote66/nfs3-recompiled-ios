@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.15)
 project(nfs_recompiled LANGUAGES C CXX ASM)
 
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    enable_language(OBJCXX)
+    add_subdirectory(ios)
+    return()
+endif()
+
 # options
 option(WITH_PEDANTIC_FPU "Compile pedantic FPU implementation" OFF)
 option(WITH_MMX "Enable MMX support" ON)
