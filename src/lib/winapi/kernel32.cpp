@@ -528,7 +528,7 @@ DWORD GetFullPathNameA(WinApplication* app, x86::CPU& cpu,
     NFS2_USE(nBufferLength);
     x86::reg32 lpBufferAddress = app->getMemory<x86::reg32>(cpu.esp + 12);
     NFS2_ASSERT(&app->getMemory<char>(lpBufferAddress) == lpBuffer);
-    strcpy(lpBuffer, "C:\\nfs2se\\");
+    strcpy(lpBuffer, "C:\\NFS3\\");
     *lpFilePart = lpBufferAddress + static_cast<x86::reg32>(strlen(lpBuffer));
     strcat(lpBuffer, lpFileName);
     return static_cast<DWORD>(strlen(lpBuffer));
@@ -845,11 +845,7 @@ HMODULE LoadLibraryA(WinApplication* app, x86::CPU& cpu,
     {
         delete lib;
         //NFS2_ASSERT(false);
-#ifdef NFS_IOS
         return 0;
-#else
-        return -1;
-#endif
     }
 }
 

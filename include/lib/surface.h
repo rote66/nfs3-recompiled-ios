@@ -4,7 +4,6 @@
 #include <lib/winapp.h>
 #include <lib/memmap.h>
 
-struct SDL_Texture;
 
 namespace win32
 {
@@ -29,4 +28,3 @@ private:
 }
 
 #endif
-

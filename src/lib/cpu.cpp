@@ -1,5 +1,4 @@
 #include <cpu.h>
-//#include <intrin.h>
 #include <lib/platform.h>
 #include <cstring>
 
@@ -9,11 +8,7 @@ namespace x86
 void CPU::rdtsc()
 {
     // Emulate a 2GHz CPU
-#ifdef NFS_IOS
     uint64_t counter = win32::platform::guestNanoseconds();
-#else
-    uint64_t counter = win32::platform::nanoseconds();
-#endif
     uint64_t freq = 1000000000;
     edx_eax = (uint64_t)((double)counter * 2000000000.0 / (double)freq);
 }
@@ -45,7 +40,6 @@ void CPU::cpuid()
 
 }
 
-#ifndef WITH_PEDANTIC_FPU
 
 extern "C" void convert80x64(const x86::IEEEf80Data *fp80, double *fp64)
 {
@@ -191,5 +185,3 @@ extern "C" void convert64x80(const double *fp64, x86::IEEEf80Data *fp80)
     fp80->data4 = x86::sreg16(uint16_t(mantissa >> 48));
     fp80->data5 = x86::sreg16(expSign);
 }
-
-#endif

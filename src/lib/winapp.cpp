@@ -1,7 +1,5 @@
 #include <lib/winapp.h>
-#ifdef NFS_IOS
 #include <winapi/com.h>
-#endif
 #include <lib/mutex.h>
 #include <lib/event.h>
 #include <lib/library.h>
@@ -15,9 +13,7 @@
 #include <winapi/ddraw.h>
 #include <winapi/glide2x.h>
 #include <algorithm>
-#ifdef NFS_IOS
 #include "Native.h"
-#endif
 
 namespace win32
 {
@@ -82,17 +78,13 @@ WinApplication::WinApplication(const char* appName, x86::reg32 baseAddress, cons
     allocateResourceFixed(new RegistryKey(), HKEY_PERFORMANCE_NLSTEXT);
     allocateResourceFixed(new RegistryKey(), HKEY_CURRENT_CONFIG);
     allocateResourceFixed(new RegistryKey(), HKEY_DYN_DATA);
-#ifdef NFS_IOS
     com::InitialiseComMemory(this);
-#endif
 }
 
 WinApplication::~WinApplication()
 {
-#ifdef NFS_IOS
     terminate();
     nfsios::shutdownServices(this);
-#endif
     delete m_env;
     delete m_appNameW;
     delete m_appName;
@@ -198,7 +190,6 @@ void WinApplication::registerMethod(x86::reg32 pointer, Method method)
     m_methods[pointer-0x400000] = method;
 }
 
-#ifdef NFS_IOS
 bool WinApplication::freeResourceIfPresent(x86::reg32 resource)
 {
     m_resourceContext->lock();
@@ -214,7 +205,6 @@ bool WinApplication::freeResourceIfPresent(x86::reg32 resource)
     m_resourceContext->unlock();
     return present;
 }
-#endif
 
 int WinApplication::runThread(x86::CPU& cpu, x86::reg32 entryPoint, x86::reg32 parameter, bool threadLock)
 {

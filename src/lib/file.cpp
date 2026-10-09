@@ -2,10 +2,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#ifdef _WIN32
-# include <windows.h>
-# include <io.h>
-#else
 # include <unistd.h>
 # include <dirent.h>
 # include <fnmatch.h>
@@ -18,7 +14,6 @@
 # define _unlink unlink
 # define _chsize ftruncate
 # define O_BINARY 0
-#endif
 #include <algorithm>
 #include <lib/platform.h>
 
@@ -26,7 +21,7 @@
 namespace win32
 {
 
-static std::string s_currentDirectory = "c:\\nfs2se\\";
+static std::string s_currentDirectory = "c:\\NFS3\\";
 static std::string s_dataDirectory = "./";
 static std::string s_cdDirectory = "./";
 
@@ -40,12 +35,10 @@ static std::string moveToRoot(const std::string& path)
         else
             return s_cdDirectory + std::string(path.begin() + 2, path.end());
     }
-#ifndef _WIN32
     else if (path == "nul")
     {
         return "/dev/null";
     }
-#endif
     else
     {
         /* Relative path - map to local install directory */
@@ -94,11 +87,6 @@ static std::string resolvePathCaseInsensitive(const std::string& path)
         }
         else
         {
-#ifdef _WIN32
-            /* Windows filesystems are case-insensitive; just append the
-             * component as-is and let the OS handle it. */
-            resolved += component;
-#else
             /* Scan directory for a case-insensitive match */
             const char* dirToOpen = resolved.empty() ? "." : resolved.c_str();
             DIR* dir = opendir(dirToOpen);
@@ -122,7 +110,6 @@ static std::string resolvePathCaseInsensitive(const std::string& path)
                 /* No match found, keep original (e.g. file to be created) */
                 resolved += component;
             }
-#endif
         }
 
         if (end < path.size())
@@ -138,29 +125,7 @@ FileEnumerator::FileEnumerator(const char* filename)
     :   m_pattern(moveToRoot(filename))
     ,   m_index(-1)
 {
-#ifndef NFS_IOS
-    std::transform(m_pattern.begin(), m_pattern.end(), m_pattern.begin(), ::tolower);
-#endif
     platform::log("Enumerate %s", m_pattern.c_str());
-#ifdef _WIN32
-    NFS2_ASSERT(sizeof(::WIN32_FIND_DATAA) == sizeof(WIN32_FIND_DATAA));
-    ::WIN32_FIND_DATAA findData;
-    WIN32_FIND_DATAA result;
-    ::HANDLE h = ::FindFirstFileA(m_pattern.c_str(), &findData);
-    if (h != ::HANDLE(-1))
-    {
-        memcpy(&result, &findData, sizeof(result));
-        platform::log("  ->  %s", result.cFileName);
-        m_files.push_back(result);
-    }
-    while (::FindNextFileA(h, &findData))
-    {
-        memcpy(&result, &findData, sizeof(result));
-        platform::log("  ->  %s", result.cFileName);
-        m_files.push_back(result);
-    }
-    ::FindClose(h);
-#else
     for (std::string::iterator it = m_pattern.begin(); it != m_pattern.end(); ++it)
         if (*it == '\\') *it = '/';
     /* hack - replace *.* with *
@@ -205,7 +170,6 @@ FileEnumerator::FileEnumerator(const char* filename)
         }
         closedir(d);
     }
-#endif
 }
 
 FileEnumerator::~FileEnumerator()
@@ -244,9 +208,6 @@ File::File(const char* path, x86::reg32 mode, x86::reg32 flags, x86::reg32 creat
     ,   m_filename(moveToRoot(path))
 {
     NFS2_USE(flags);
-#ifndef NFS_IOS
-    std::transform(m_filename.begin(), m_filename.end(), m_filename.begin(), ::tolower);
-#endif
     //NFS2_ASSERT((flags & FILE_FLAG_OVERLAPPED) == 0);
     for (std::string::iterator it = m_filename.begin(); it != m_filename.end(); ++it)
         if (*it == '\\') *it = '/';
@@ -382,9 +343,6 @@ void File::setCdDirectory(const char* path)
 x86::reg32 File::remove(const char *filename)
 {
     std::string f = moveToRoot(filename);
-#ifndef NFS_IOS
-    std::transform(f.begin(), f.end(), f.begin(), ::tolower);
-#endif
     for (std::string::iterator it = f.begin(); it != f.end(); ++it)
         if (*it == '\\') *it = '/';
     f = resolvePathCaseInsensitive(f);

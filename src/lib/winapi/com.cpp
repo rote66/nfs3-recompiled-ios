@@ -8,9 +8,7 @@
 #include <winapi/dsound/idirectsound.h>
 #include <winapi/dsound/idirectsoundbuffer.h>
 #include <winapi/dsound/idirectsound3dlistener.h>
-#ifdef NFS_IOS
 #include "ForceFeedback.h"
-#endif
 
 namespace win32 { namespace com
 {
@@ -53,9 +51,7 @@ bool InitialiseComMemory(WinApplication* app)
     blockOffset += ddraw::IDirectDrawSurface::init(app, s_memory->getBlockStart() + blockOffset, blockStart + blockOffset);
     blockOffset += dinput::IDirectInput2::init(app, s_memory->getBlockStart() + blockOffset, blockStart + blockOffset);
     blockOffset += dinput::IDirectInputDevice::init(app, s_memory->getBlockStart() + blockOffset, blockStart + blockOffset);
-#ifdef NFS_IOS
     blockOffset += nfsios::initializeForceFeedback(app, s_memory->getBlockStart() + blockOffset, blockStart + blockOffset);
-#endif
     blockOffset += dsound::IDirectSound::init(app, s_memory->getBlockStart() + blockOffset, blockStart + blockOffset);
     blockOffset += dsound::IDirectSoundBuffer::init(app, s_memory->getBlockStart() + blockOffset, blockStart + blockOffset);
     blockOffset += dsound::IDirectSound3DListener::init(app, s_memory->getBlockStart() + blockOffset, blockStart + blockOffset);

@@ -5,14 +5,10 @@
 #include <cstring>
 #include <cmath>
 
-//#define NFS2SE_X87_DEBUG 1
 
 namespace x86
 {
 
-#ifdef WITH_PEDANTIC_FPU
-    struct Float;
-#endif
 
     struct IEEEf80Data
     {
@@ -30,9 +26,6 @@ namespace x86
         inline IEEEf80(IEEEf80Data data) : data(data) {};
         inline IEEEf80(double value);
 
-#ifdef WITH_PEDANTIC_FPU
-        inline void operator=(const Float &value);
-#endif
 
         inline operator double() const;
         inline void operator=(double value);
@@ -88,236 +81,7 @@ namespace x86
         convert64x80(&value, &data);
     }
 
-#ifdef WITH_PEDANTIC_FPU
-    struct Float
-    {
-        IEEEf80 f80value;
-#ifdef NFS2SE_X87_DEBUG
-        float dbgValue;
-#endif
-
-        Float()
-            : f80value()
-#ifdef NFS2SE_X87_DEBUG
-              ,
-              dbgValue(0)
-#endif
-        {
-        }
-        Float(const IEEEf80 &value)
-            : f80value(value)
-#ifdef NFS2SE_X87_DEBUG
-              ,
-              dbgValue(0)
-#endif
-        {
-        }
-        Float(float value)
-        {
-            convert32x80(&value, &f80value.data);
-#ifdef NFS2SE_X87_DEBUG
-            convert80x32(&f80value.data, &dbgValue);
-#endif
-        }
-
-        Float(double value)
-        {
-            convert64x80(&value, &f80value.data);
-#ifdef NFS2SE_X87_DEBUG
-            convert80x32(&f80value.data, &dbgValue);
-#endif
-        }
-
-        Float(sreg16 value)
-        {
-            converti16x80(&value, &f80value.data);
-#ifdef NFS2SE_X87_DEBUG
-            convert80x32(&f80value.data, &dbgValue);
-#endif
-        }
-
-        Float(sreg32 value)
-        {
-            converti32x80(&value, &f80value.data);
-#ifdef NFS2SE_X87_DEBUG
-            convert80x32(&f80value.data, &dbgValue);
-#endif
-        }
-        Float(sreg64 value)
-        {
-            converti64x80(&value, &f80value.data);
-#ifdef NFS2SE_X87_DEBUG
-            convert80x32(&f80value.data, &dbgValue);
-#endif
-        }
-
-        operator IEEEf80() const
-        {
-            return f80value;
-        }
-
-        operator double() const
-        {
-            double result;
-            convert80x64(&f80value.data, &result);
-            return result;
-        }
-        operator float() const
-        {
-            float result;
-            convert80x32(&f80value.data, &result);
-            return result;
-        }
-        operator sreg16() const
-        {
-            sreg16 result;
-            convert80xi16(&f80value.data, &result);
-            return result;
-        }
-        operator sreg32() const
-        {
-            sreg32 result;
-            convert80xi32(&f80value.data, &result);
-            return result;
-        }
-        operator sreg64() const
-        {
-            sreg64 result;
-            convert80xi64(&f80value.data, &result);
-            return result;
-        }
-
-        Float &operator+=(const Float &other)
-        {
-            add80(&f80value.data, &other.f80value.data);
-#ifdef NFS2SE_X87_DEBUG
-            convert80x32(&f80value.data, &dbgValue);
-#endif
-            return *this;
-        }
-
-        Float &operator-=(const Float &other)
-        {
-            sub80(&f80value.data, &other.f80value.data);
-#ifdef NFS2SE_X87_DEBUG
-            convert80x32(&f80value.data, &dbgValue);
-#endif
-            return *this;
-        }
-
-        Float &operator*=(const Float &other)
-        {
-            mul80(&f80value.data, &other.f80value.data);
-#ifdef NFS2SE_X87_DEBUG
-            convert80x32(&f80value.data, &dbgValue);
-#endif
-            return *this;
-        }
-
-        Float &operator/=(const Float &other)
-        {
-            div80(&f80value.data, &other.f80value.data);
-#ifdef NFS2SE_X87_DEBUG
-            convert80x32(&f80value.data, &dbgValue);
-#endif
-            return *this;
-        }
-        Float operator-() const
-        {
-            Float result = *this;
-            chs80(&result.f80value.data);
-#ifdef NFS2SE_X87_DEBUG
-            convert80x32(&result.f80value.data, &result.dbgValue);
-#endif
-            return result;
-        }
-    };
-
-    static inline Float operator+(const Float &arg1, const Float &arg2)
-    {
-        Float result = arg1;
-        result += arg2;
-        return result;
-    }
-
-    static inline Float operator-(const Float &arg1, const Float &arg2)
-    {
-        Float result = arg1;
-        result -= arg2;
-        return result;
-    }
-
-    static inline Float operator*(const Float &arg1, const Float &arg2)
-    {
-        Float result = arg1;
-        result *= arg2;
-        return result;
-    }
-
-    static inline Float operator/(const Float &arg1, const Float &arg2)
-    {
-        Float result = arg1;
-        result /= arg2;
-        return result;
-    }
-
-    static inline Float operator+(const float &arg1, const Float &arg2)
-    {
-        Float result = arg1;
-        result += arg2;
-        return result;
-    }
-
-    static inline Float operator-(const float &arg1, const Float &arg2)
-    {
-        Float result = arg1;
-        result -= arg2;
-        return result;
-    }
-
-    static inline Float operator*(const float &arg1, const Float &arg2)
-    {
-        Float result = arg1;
-        result *= arg2;
-        return result;
-    }
-
-    static inline Float operator/(const float &arg1, const Float &arg2)
-    {
-        Float result = arg1;
-        result /= arg2;
-        return result;
-    }
-    static inline Float operator+(const double &arg1, const Float &arg2)
-    {
-        Float result = arg1;
-        result += arg2;
-        return result;
-    }
-
-    static inline Float operator-(const double &arg1, const Float &arg2)
-    {
-        Float result = arg1;
-        result -= arg2;
-        return result;
-    }
-
-    static inline Float operator*(const double &arg1, const Float &arg2)
-    {
-        Float result = arg1;
-        result *= arg2;
-        return result;
-    }
-
-    static inline Float operator/(const double &arg1, const Float &arg2)
-    {
-        Float result = arg1;
-        result /= arg2;
-        return result;
-    }
-#else
     typedef double Float;
-#endif
 
     struct FPU
     {
@@ -399,11 +163,6 @@ namespace x86
 
         inline void compare(const Float& val1, const Float& val2)
         {
-#ifdef WITH_PEDANTIC_FPU
-            x86::reg32 r = cmp80(&val1.f80value.data, &val2.f80value.data) & 0x4700;
-            status.word &= ~0x4700;
-            status.word |= r;
-#else
             if (val1 == val2)
             {
                 status.c3 = true;
@@ -428,180 +187,61 @@ namespace x86
                 status.c2 = true;
                 status.c0 = true;
             }
-#endif
         }
 
         inline Float log2(const Float &value)
         {
-#ifdef WITH_PEDANTIC_FPU
-            Float result = value;
-            x86::reg32 r = log280(&result.f80value.data);
-            status.word &= ~0x4700;
-            status.word |= r & 0x4700;
-#ifdef NFS2SE_X87_DEBUG
-            convert80x32(&result.f80value.data, &result.dbgValue);
-#endif
-            return result;
-#else
             return ::log2(value);
-#endif
         }
 
         inline Float sin(const Float &value)
         {
-#ifdef WITH_PEDANTIC_FPU
-            Float result = value;
-            x86::reg32 r = sin80(&result.f80value.data);
-            status.word &= ~0x4700;
-            status.word |= r & 0x4700;
-#ifdef NFS2SE_X87_DEBUG
-            convert80x32(&result.f80value.data, &result.dbgValue);
-#endif
-            return result;
-#else
             return ::sin(value);
-#endif
         }
 
         inline Float cos(const Float &value)
         {
-#ifdef WITH_PEDANTIC_FPU
-            Float result = value;
-            x86::reg32 r = cos80(&result.f80value.data);
-            status.word &= ~0x4700;
-            status.word |= r & 0x4700;
-#ifdef NFS2SE_X87_DEBUG
-            convert80x32(&result.f80value.data, &result.dbgValue);
-#endif
-            return result;
-#else
             return ::cos(value);
-#endif
         }
 
         inline Float tan(const Float &value)
         {
-#ifdef WITH_PEDANTIC_FPU
-            Float result = value;
-            x86::reg32 r = tan80(&result.f80value.data);
-            status.word &= ~0x4700;
-            status.word |= r & 0x4700;
-#ifdef NFS2SE_X87_DEBUG
-            convert80x32(&result.f80value.data, &result.dbgValue);
-#endif
-            return result;
-#else
             return ::tan(value);
-#endif
         }
 
         inline Float abs(const Float &value)
         {
-#ifdef WITH_PEDANTIC_FPU
-            Float result = value;
-            x86::reg32 r = abs80(&result.f80value.data);
-            status.word &= ~0x4700;
-            status.word |= r & 0x4700;
-#ifdef NFS2SE_X87_DEBUG
-            convert80x32(&result.f80value.data, &result.dbgValue);
-#endif
-            return result;
-#else
             return ::fabs(value);
-#endif
         }
 
         inline Float sqrt(const Float &value)
         {
-#ifdef WITH_PEDANTIC_FPU
-            Float result = value;
-            x86::reg32 r = sqrt80(&result.f80value.data);
-            status.word &= ~0x4700;
-            status.word |= r & 0x4700;
-#ifdef NFS2SE_X87_DEBUG
-            convert80x32(&result.f80value.data, &result.dbgValue);
-#endif
-            return result;
-#else
             return ::sqrt(value);
-#endif
         }
 
         inline Float atan(const Float &value, const Float &operand)
         {
-#ifdef WITH_PEDANTIC_FPU
-            Float result = value;
-            x86::reg32 r = atan80(&result.f80value.data, &operand.f80value.data);
-            status.word &= ~0x4700;
-            status.word |= r & 0x4700;
-#ifdef NFS2SE_X87_DEBUG
-            convert80x32(&result.f80value.data, &result.dbgValue);
-#endif
-            return result;
-#else
             return ::atan2(operand, value);
-#endif
         }
 
         inline Float rem(const Float &val1, const Float &val2)
         {
-#ifdef WITH_PEDANTIC_FPU
-            Float result = val1;
-            x86::reg32 r = rem80(&result.f80value.data, &val2.f80value.data);
-            status.word &= ~0x4700;
-            status.word |= r & 0x4700;
-#ifdef NFS2SE_X87_DEBUG
-            convert80x32(&result.f80value.data, &result.dbgValue);
-#endif
-            return result;
-#else
             status.c2 = 0;
             return fmod(val1, val2);
-#endif
         }
 
         inline Float scale(const Float &val1, const Float &val2)
         {
-#ifdef WITH_PEDANTIC_FPU
-            Float result = val1;
-            x86::reg32 r = scale80(&result.f80value.data, &val2.f80value.data);
-            status.word &= ~0x4700;
-            status.word |= r & 0x4700;
-#ifdef NFS2SE_X87_DEBUG
-            convert80x32(&result.f80value.data, &result.dbgValue);
-#endif
-            return result;
-#else
             return val1 * ::pow(2, ::trunc(val2));
-#endif
         }
 
         inline Float f2xm1(const Float &value)
         {
-#ifdef WITH_PEDANTIC_FPU
-            Float result = value;
-            x86::reg32 r = f2xm180(&result.f80value.data);
-            status.word &= ~0x4700;
-            status.word |= r & 0x4700;
-#ifdef NFS2SE_X87_DEBUG
-            convert80x32(&result.f80value.data, &result.dbgValue);
-#endif
-            return result;
-#else
             return ::pow(2, value) - 1.0;
-#endif
         }
 
         Float rndint()
         {
-#ifdef WITH_PEDANTIC_FPU
-            Float result = st(0);
-            round80(&result.f80value.data, control.rc);
-#ifdef NFS2SE_X87_DEBUG
-            convert80x32(&result.f80value.data, &result.dbgValue);
-#endif
-            return result;
-#else
             switch (control.rc)
             {
             case 0:
@@ -616,16 +256,9 @@ namespace x86
                 NFS2_ASSERT(false);
                 return Float(trunc(double(st(0))));
             }
-#endif
         }
     };
 
-#ifdef WITH_PEDANTIC_FPU
-    void IEEEf80::operator=(const Float &value)
-    {
-        *this = value.f80value;
-    }
-#endif
 
 }
 

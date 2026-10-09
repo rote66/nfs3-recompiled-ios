@@ -11574,9 +11574,7 @@ L_0x00471146:
     if (cpu.terminate) return;
     // 00471177  89c6                   -mov esi, eax
     cpu.esi = cpu.eax;
-#ifdef NFS_IOS
     cpu.edx = app->getMemory<x86::reg32>(0x6fd4f8);
-#endif
     // 00471179  31c0                   +xor eax, eax
     cpu.clear_co();
     cpu.set_szp((cpu.eax ^= x86::reg32(x86::sreg32(cpu.eax))));

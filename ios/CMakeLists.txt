@@ -9,8 +9,6 @@ file(GLOB CORE_SOURCES
     "${PROJECT_SOURCE_DIR}/src/lib/winapi/ddraw/*.cpp"
     "${PROJECT_SOURCE_DIR}/src/lib/winapi/dinput/*.cpp"
     "${PROJECT_SOURCE_DIR}/src/lib/winapi/dsound/*.cpp")
-list(FILTER CORE_SOURCES EXCLUDE REGEX "/(window|renderer|gliderenderer|thread|timer|mutex)\\.cpp$")
-list(APPEND CORE_SOURCES "${PROJECT_SOURCE_DIR}/src/lib/sdl-backend/file.cpp")
 file(GLOB GAME_SOURCES "${PROJECT_SOURCE_DIR}/src/nfs3hp/disassembly/*.cpp")
 
 set(METALLIB "${CMAKE_CURRENT_BINARY_DIR}/default.metallib")
@@ -20,7 +18,7 @@ else()
     set(METAL_MINIMUM "-mios-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET}")
 endif()
 add_custom_command(OUTPUT "${METALLIB}"
-    COMMAND xcrun --toolchain Metal -sdk "${CMAKE_OSX_SYSROOT}" metal "${METAL_MINIMUM}" -std=ios-metal2.3 -c "${CMAKE_CURRENT_SOURCE_DIR}/Shaders.metal" -o "${CMAKE_CURRENT_BINARY_DIR}/Shaders.air"
+    COMMAND xcrun --toolchain Metal -sdk "${CMAKE_OSX_SYSROOT}" metal "${METAL_MINIMUM}" -std=ios-metal2.3 -fmodules-cache-path="${CMAKE_CURRENT_BINARY_DIR}/metal-module-cache" -c "${CMAKE_CURRENT_SOURCE_DIR}/Shaders.metal" -o "${CMAKE_CURRENT_BINARY_DIR}/Shaders.air"
     COMMAND xcrun --toolchain Metal -sdk "${CMAKE_OSX_SYSROOT}" metallib "${CMAKE_CURRENT_BINARY_DIR}/Shaders.air" -o "${METALLIB}"
     DEPENDS Shaders.metal VERBATIM)
 set_source_files_properties("${METALLIB}" PROPERTIES GENERATED TRUE MACOSX_PACKAGE_LOCATION Resources)
@@ -43,7 +41,7 @@ add_executable(nfs3 MACOSX_BUNDLE ${CORE_SOURCES} ${GAME_SOURCES}
     Runtime.cpp ForceFeedback.cpp Haptics.mm ForceFeedbackDiagnostic.cpp MetalBackend.mm GraphicsDiagnostic.mm AudioBackend.mm TouchUI.mm LayoutEditor.mm App.mm "${METALLIB}" ${GAME_FILES} ${APP_ICONS} ${LOCALIZED_STRINGS})
 target_include_directories(nfs3 PRIVATE
     "${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/src/nfs3hp/disassembly" "${CMAKE_CURRENT_SOURCE_DIR}")
-target_compile_definitions(nfs3 PRIVATE NFS_IOS WITH_MMX)
+target_compile_definitions(nfs3 PRIVATE WITH_MMX)
 target_compile_options(nfs3 PRIVATE -O2 -fno-strict-aliasing
     -Wno-cpp
     "$<$<COMPILE_LANGUAGE:OBJCXX>:-fobjc-arc>"

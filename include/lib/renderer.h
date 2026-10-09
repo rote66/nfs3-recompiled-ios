@@ -5,8 +5,6 @@
 #include <winapi/types.h>
 #include <lib/memmap.h>
 
-struct SDL_Renderer;
-struct SDL_Texture;
 
 namespace win32
 {
@@ -31,9 +29,7 @@ public:
 
     x86::reg32 getWidth() const     { return m_width; }
     x86::reg32 getHeight() const    { return m_height; }
-#ifdef NFS_IOS
     x86::reg32 diagnosticPixel(unsigned horizontal, unsigned vertical) const;
-#endif
 
 private: // friend class GlideRenderer
     void present();

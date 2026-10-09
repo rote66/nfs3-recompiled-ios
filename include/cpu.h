@@ -4,9 +4,7 @@
 #include <x86.h>
 #include <fpu.h>
 #include <mmx.h>
-#ifdef NFS_IOS
 #include <atomic>
-#endif
 
 #define REGISTER_A(n)       \
 union                       \
@@ -117,9 +115,6 @@ struct CPU
     inline void init(reg32 fs, reg32 ip)
     {
         fpu.init();
-#ifndef NFS_IOS
-        terminate = false;
-#endif
         this->flags.eflags = 0x00200202;
         this->flags.cf = 0;
         this->flags.zf = 0;
@@ -140,11 +135,7 @@ struct CPU
     void rdtsc();
     FPU fpu;
     MMX mmx;
-#ifdef NFS_IOS
     std::atomic<bool> terminate{false};
-#else
-    bool terminate;
-#endif
 };
 
 }

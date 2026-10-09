@@ -1,11 +1,7 @@
 #include <lib/memmap.h>
 #include <lib/platform.h>
 #include <vector>
-#ifdef _WIN32
-# include <windows.h>
-#else
 # include <sys/mman.h>
-#endif
 #include <lib/mutex.h>
 #include <cstdlib>
 
@@ -26,57 +22,24 @@ std::vector<MemMap*> MemMap::s_memMaps;
 
 static void* alloc(x86::reg32 size)
 {
-#ifdef _WIN32
-    return VirtualAlloc(0, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-#else
     void* p = mmap(nullptr, size,
-#ifdef NFS_IOS
         PROT_READ | PROT_WRITE,
-#else
-        PROT_NONE,
-#endif
         MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
     NFS2_ASSERT(p != MAP_FAILED);
     return p;
-#endif
 }
 
 static void dealloc(void* mem, x86::reg32 size)
 {
-#ifdef _WIN32
-    NFS2_USE(size);
-    VirtualFree(mem, 0, MEM_RELEASE);
-#else
     munmap(mem, size);
-#endif
 }
 
 static void protect(void* mem, x86::reg32 size, bool read, bool write)
 {
-#ifdef _WIN32
     NFS2_USE(mem);
     NFS2_USE(size);
     NFS2_USE(read);
     NFS2_USE(write);
-#else
-#ifdef NFS_IOS
-    NFS2_USE(mem);
-    NFS2_USE(size);
-    NFS2_USE(read);
-    NFS2_USE(write);
-#else
-    int protection = PROT_NONE;
-    if (read)
-        protection |= PROT_READ;
-    if (write)
-        protection |= PROT_WRITE;
-    uintptr_t addr = reinterpret_cast<uintptr_t>(mem);
-    uintptr_t alignedAddr = addr & ~uintptr_t(4095);
-    x86::reg32 alignedSize = ((addr - alignedAddr) + size + 4095) & ~4095u;
-    int ret = mprotect(reinterpret_cast<void*>(alignedAddr), alignedSize, protection);
-    NFS2_ASSERT(ret == 0);
-#endif
-#endif
 }
 
 MemMap::MemMap(x86::reg32 size)

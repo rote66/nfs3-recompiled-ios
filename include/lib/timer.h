@@ -18,24 +18,15 @@ public:
     ~Timer();
 
     void cancel();
-#ifdef NFS_IOS
     bool start();
     static void cancelEvent(WinApplication* app, x86::CPU& cpu, x86::reg32 handle);
-#endif
 private:
-#ifndef NFS_IOS
-    static Uint32 timerCallback(void* data, SDL_TimerID timerID, Uint32 interval);
-#endif
 
 private:
     WinApplication* m_app;
     x86::reg32      m_callback;
     x86::reg32      m_parameter;
-#ifdef NFS_IOS
     void* m_id;
-#else
-    SDL_TimerID     m_id;
-#endif
 };
 
 }

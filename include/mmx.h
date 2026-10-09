@@ -2,12 +2,7 @@
 #define MMX_H_
 
 #include <x86.h>
-//#include <intrin.h>
-#if defined(__aarch64__) || defined(__arm64__)
 #include <lib/portable_simd.h>
-#else
-#include <immintrin.h>
-#endif
 
 namespace x86
 {

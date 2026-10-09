@@ -4,17 +4,8 @@
 #include    <cstdint>
 #include    <cstdlib>
 
-#ifdef NFS_IOS
 namespace nfsios { [[noreturn]] void assertionFailed(const char* expression, const char* file, unsigned line); }
 # define NFS2_ASSERT(x) do { if (!(x)) nfsios::assertionFailed(#x, __FILE__, __LINE__); } while (false)
-#elif defined(_MSC_VER)
-# define __restrict__ __restrict
-# define NFS2_ASSERT(x)         \
-    if (! (x)) __debugbreak()
-#else
-# define NFS2_ASSERT(x)         \
-    if (! (x)) __builtin_trap()
-#endif
 #define NFS2_USE(x)             \
     (void)x
 
@@ -37,21 +28,5 @@ struct FPU;
 
 }
 
-#if defined(_MSC_VER) && !defined(__clang__)
-# include <intrin.h>
-static inline x86::reg32 __builtin_clz(x86::reg32 value)
-{
-    unsigned long result;
-    _BitScanReverse(&result, value);
-    return 31 - result;
-}
-
-static inline x86::reg32 __builtin_ctz(x86::reg32 value)
-{
-    unsigned long result;
-    _BitScanForward(&result, value);
-    return result;
-}
-#endif
 
 #endif /* !X86_H_ */

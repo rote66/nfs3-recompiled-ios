@@ -5,9 +5,7 @@
 
 namespace win32 { namespace wsock32
 {
-#ifdef NFS_IOS
 static thread_local int socketError = 0;
-#endif
 
 enum SocketLevel
 {
@@ -211,19 +209,12 @@ int closesocket(WinApplication* app, x86::CPU& cpu, SOCKET s)
 SOCKET socket(WinApplication* app, x86::CPU& cpu, int af, int type, int protocol)
 {
     NFS2_USE(cpu);
-#ifdef NFS_IOS
     NFS2_USE(app);
     NFS2_USE(type);
     NFS2_USE(protocol);
     socketError = 10047;
     platform::log("NFS3_NETWORK: socket family=%d unavailable", af);
     return SOCKET(-1);
-#else
-    NFS2_ASSERT(af == 6);    // AF_IPX
-    NFS2_ASSERT(type == 2);  // SOCK_DGRAM
-    NFS2_ASSERT(protocol == 1000);
-    return app->allocateResource(new Socket());
-#endif
 }
 
 int WSACleanup(WinApplication* app, x86::CPU& cpu)
@@ -368,12 +359,7 @@ int WSAGetLastError(WinApplication* app, x86::CPU& cpu)
 {
     NFS2_USE(app);
     NFS2_USE(cpu);
-#ifdef NFS_IOS
     return socketError;
-#else
-    NFS2_ASSERT(false);
-    return -1;
-#endif
 }
 
 }}

@@ -59,16 +59,12 @@ public:
     ~GlideRenderer();
 
     void clear(x86::reg32 color);
-#ifdef NFS_IOS
     void swap(x86::CPU* cpu = nullptr);
     void setClipWindow(x86::reg32 minX, x86::reg32 minY, x86::reg32 maxX, x86::reg32 maxY);
     void setTextureClamp(bool wrapS, bool wrapT);
     void setChromakey(bool enabled);
     void setChromakeyColor(x86::reg32 color);
     void setAlphaReference(x86::reg32 value);
-#else
-    void swap();
-#endif
     void render(x86::reg32 buffer);
     x86::reg32 textureMemStart(x86::reg32 tmu);
     x86::reg32 textureMemEnd(x86::reg32 tmu);
@@ -89,31 +85,7 @@ private:
 
 private:
     Renderer*               m_renderer;
-#ifdef NFS_IOS
     void* m_native;
-#else
-    unsigned int            m_depthBuffer;
-    unsigned int            m_framebuffer;
-    GlVertex*               m_vertices;
-    x86::reg32              m_vertexCount;
-    std::vector<DrawCall>   m_drawCalls;
-    unsigned int            m_vertexBuffer;
-    unsigned int            m_vertexArray;
-    unsigned int            m_shaderProgram;
-    unsigned int            m_atlas;
-    int                     m_attributes[5];
-    int                     m_transform;
-    //int                     m_textureBind;
-    x86::reg32              m_textureOffsetX;
-    x86::reg32              m_textureOffsetY;
-    x86::reg32              m_textureOffsetW;
-    float                   m_colorFactor;
-    float                   m_alphaFactor;
-    bool                    m_zBuffer;
-    bool                    m_zTest;
-    bool                    m_alphaBlend;
-    GlideTMU*               m_tmus[2];
-#endif
 };
 
 }

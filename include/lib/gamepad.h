@@ -51,15 +51,9 @@ public:
 
     GamepadState getState() const;
     static void updateKeys();
-#ifdef NFS_IOS
     unsigned index() const { return m_index; }
-#endif
 private:
-#ifdef NFS_IOS
     unsigned m_index;
-#else
-    SDL_Joystick* m_joystick;
-#endif
 };
 
 }

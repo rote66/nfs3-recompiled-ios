@@ -19,11 +19,7 @@ public:
     x86::reg32 getResourceIndex() const { return m_resourceIndex; }
 
 private:
-#ifdef NFS_IOS
     void* m_mutex;
-#else
-    SDL_Mutex*  m_mutex;
-#endif
     std::string m_name;
     x86::reg32  m_owner;
     x86::reg32  m_count;

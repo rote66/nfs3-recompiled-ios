@@ -16,10 +16,6 @@ HRESULT DirectDrawCreate(WinApplication* app, x86::CPU& cpu,
 {
     NFS2_USE(cpu);
     NFS2_USE(lpGUID);
-#ifndef NFS_IOS
-    static bool s_init = com::InitialiseComMemory(app);
-    NFS2_USE(s_init);
-#endif
     NFS2_ASSERT(pUnkOuter == nullptr);
     *lplpDD = com::ComAlloc(app);
     new (&app->getMemory<IDirectDraw2>(*lplpDD)) IDirectDraw2();

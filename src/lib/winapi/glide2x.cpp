@@ -350,9 +350,7 @@ struct GrHwConfiguration
 
 static void grGlideInit(WinApplication* app, x86::CPU& cpu)
 {
-#ifdef NFS_IOS
     platform::log("NFS3_GRAPHICS: Glide init");
-#endif
     NFS2_USE(app);
     NFS2_USE(cpu);
     s_renderer = nullptr;
@@ -361,9 +359,7 @@ static void grGlideInit(WinApplication* app, x86::CPU& cpu)
 
 static void grGlideShutdown(WinApplication* app, x86::CPU& cpu)
 {
-#ifdef NFS_IOS
     platform::log("NFS3_GRAPHICS: Glide shutdown");
-#endif
     NFS2_USE(cpu);
     if (s_glideRenderer)
     {
@@ -479,9 +475,7 @@ static x86::reg32 grSstWinOpen(WinApplication* app, x86::CPU& cpu, HWND hWnd,
         height = 480;
         break;
     }
-#ifdef NFS_IOS
     platform::log("NFS3_GRAPHICS: Glide open resolution=%u size=%dx%d", resolution, width, height);
-#endif
     s_renderer = new Renderer(app, dynamic_cast<Window*>(app->getResource(hWnd)));
     s_renderer->setVideoMode(width, height, 16);
     app->allocateResource(s_renderer);
@@ -494,9 +488,7 @@ static x86::reg32 grSstWinOpen(WinApplication* app, x86::CPU& cpu, HWND hWnd,
 
 static void grSstWinClose(WinApplication* app, x86::CPU& cpu)
 {
-#ifdef NFS_IOS
     platform::log("NFS3_GRAPHICS: Glide close");
-#endif
     NFS2_USE(cpu);
     if (s_glideRenderer)
     {
@@ -544,24 +536,14 @@ static void grChromakeyValue(WinApplication* app, x86::CPU& cpu, GrColor_t  colo
 {
     NFS2_USE(app);
     NFS2_USE(cpu);
-#ifdef NFS_IOS
     s_glideRenderer->setChromakeyColor(color);
-#else
-    NFS2_USE(color);
-    //NFS2_ASSERT(false);
-#endif
 }
 
 static void grAlphaTestReferenceValue(WinApplication* app, x86::CPU& cpu, GrAlpha_t value)
 {
     NFS2_USE(app);
     NFS2_USE(cpu);
-#ifdef NFS_IOS
     s_glideRenderer->setAlphaReference(value);
-#else
-    NFS2_USE(value);
-    //NFS2_ASSERT(false);
-#endif
 }
 
 static void grTexDownloadTable(WinApplication* app, x86::CPU& cpu, GrChipID_t tmu, GrTexTable_t type, void *data)
@@ -586,25 +568,13 @@ static void grBufferClear(WinApplication* app, x86::CPU& cpu, GrColor_t color, G
     //NFS2_ASSERT(color == 0);
     NFS2_ASSERT(alpha == 0);
     NFS2_ASSERT(depth == 65535);
-#ifndef NFS_IOS
-    app->unlockContext(cpu);
-#endif
     s_glideRenderer->clear(color);
-#ifndef NFS_IOS
-    app->lockContext(cpu);
-#endif
 }
 
 static void grBufferSwap(WinApplication* app, x86::CPU& cpu, x86::reg32 swapInterval)
 {
     NFS2_ASSERT(swapInterval == 1);
-#ifdef NFS_IOS
     s_glideRenderer->swap(&cpu);
-#else
-    app->unlockContext(cpu);
-    s_glideRenderer->swap();
-    app->lockContext(cpu);
-#endif
 }
 
 static void grSstIsBusy(WinApplication* app, x86::CPU& cpu)
@@ -619,15 +589,7 @@ static void grClipWindow(WinApplication* app, x86::CPU& cpu,
 {
     NFS2_USE(app);
     NFS2_USE(cpu);
-#ifdef NFS_IOS
     s_glideRenderer->setClipWindow(minX, minY, maxX, maxY);
-#else
-    NFS2_USE(minX);
-    NFS2_USE(minY);
-    NFS2_USE(maxX);
-    NFS2_USE(maxY);
-    //NFS2_ASSERT(false);
-#endif
 }
 
 static void grColorCombine(WinApplication* app, x86::CPU& cpu,
@@ -731,13 +693,8 @@ static void grChromakeyMode(WinApplication* app, x86::CPU& cpu, GrChromakeyMode_
 {
     NFS2_USE(app);
     NFS2_USE(cpu);
-#ifdef NFS_IOS
     NFS2_ASSERT(mode <= 1);
     s_glideRenderer->setChromakey(mode != 0);
-#else
-    NFS2_USE(mode);
-    //NFS2_ASSERT(false);
-#endif
 }
 
 static void grAlphaTestFunction(WinApplication* app, x86::CPU& cpu, GrCmpFnc_t function)
@@ -975,9 +932,6 @@ static void grTexDownloadMipMap(WinApplication* app, x86::CPU& cpu, GrChipID_t t
     NFS2_USE(evenOdd);
     NFS2_ASSERT(tmu == 0);
     NFS2_ASSERT(info->aspectRatio == GR_ASPECT_1x1);
-#ifndef NFS_IOS
-    app->unlockContext(cpu);
-#endif
     if (info->format == GR_TEXFMT_RGB_565)
     {
         s_glideRenderer->setTextureData(tmu, startAddress, &app->getMemory<const void>(info ->data),
@@ -997,9 +951,6 @@ static void grTexDownloadMipMap(WinApplication* app, x86::CPU& cpu, GrChipID_t t
     {
         NFS2_ASSERT(false);
     }
-#ifndef NFS_IOS
-    app->lockContext(cpu);
-#endif
 }
 
 static x86::reg32 grTexMinAddress(WinApplication* app, x86::CPU& cpu, GrChipID_t tmu)
@@ -1033,16 +984,8 @@ static void grTexClampMode(WinApplication* app, x86::CPU& cpu, GrChipID_t tmu, G
 {
     NFS2_USE(app);
     NFS2_USE(cpu);
-#ifdef NFS_IOS
     NFS2_ASSERT(tmu == 0 && s_clampmode <= 1 && t_clampmode <= 1);
     s_glideRenderer->setTextureClamp(s_clampmode == 0, t_clampmode == 0);
-#else
-    NFS2_USE(tmu);
-    NFS2_USE(s_clampmode);
-    NFS2_USE(t_clampmode);
-    /*NFS2_ASSERT(s_clampmode == GR_TEXTURECLAMP_CLAMP);
-    NFS2_ASSERT(t_clampmode == GR_TEXTURECLAMP_CLAMP);*/
-#endif
 }
 
 static void grGlideGetVersion(WinApplication* app, x86::CPU& cpu, char* version)

@@ -4,9 +4,6 @@
 #include <cstdarg>
 #include <cstdio>
 
-#ifndef NFS_IOS
-#include <SDL3/SDL.h>
-#endif
 
 namespace win32::platform
 {
@@ -25,8 +22,6 @@ inline uint64_t nanoseconds()
         std::chrono::steady_clock::now().time_since_epoch()).count();
 }
 
-#ifdef NFS_IOS
 void showMessage(const char* title, const char* text);
 uint64_t guestNanoseconds();
-#endif
 }
