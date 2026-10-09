@@ -1661,6 +1661,9 @@ Application::Application(const char* appName)
     registerMethod(0x0045ca90, {"<Application>sub_45ca90", &Application::sub_45ca90});
     registerMethod(0x0045cb50, {"<Application>sub_45cb50", &Application::sub_45cb50});
     registerMethod(0x0045cdc0, {"<Application>sub_45cdc0", &Application::sub_45cdc0});
+#ifdef NFS_IOS
+    registerMethod(0x0045cdd0, {"<Application>sub_45cdd0", &Application::sub_45cdd0});
+#endif
     registerMethod(0x0045ce60, {"<Application>sub_45ce60", &Application::sub_45ce60});
     registerMethod(0x0045cef0, {"<Application>sub_45cef0", &Application::sub_45cef0});
     registerMethod(0x0045cf70, {"<Application>sub_45cf70", &Application::sub_45cf70});

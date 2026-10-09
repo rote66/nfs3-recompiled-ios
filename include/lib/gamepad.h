@@ -2,7 +2,7 @@
 #define LIB_GAMEPAD_H_
 
 #include <lib/winapp.h>
-#include <SDL3/SDL.h>
+#include <lib/platform.h>
 
 
 namespace win32
@@ -51,11 +51,17 @@ public:
 
     GamepadState getState() const;
     static void updateKeys();
+#ifdef NFS_IOS
+    unsigned index() const { return m_index; }
+#endif
 private:
+#ifdef NFS_IOS
+    unsigned m_index;
+#else
     SDL_Joystick* m_joystick;
+#endif
 };
 
 }
 
 #endif
-

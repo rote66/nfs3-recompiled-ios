@@ -1,33 +1,40 @@
 #include <lib/winapp.h>
+#ifdef NFS_IOS
+#include <winapi/com.h>
+#endif
 #include <lib/mutex.h>
 #include <lib/event.h>
 #include <lib/library.h>
 #include <lib/registry.h>
 #include <winapi/types.h>
-#include <SDL3/SDL.h>
+#include <lib/platform.h>
+#include <atomic>
 #include <x86.h>
 
 #include <winapi/dsetup.h>
 #include <winapi/ddraw.h>
 #include <winapi/glide2x.h>
 #include <algorithm>
+#ifdef NFS_IOS
+#include "Native.h"
+#endif
 
 namespace win32
 {
 
 static x86::reg32 s_resourceIndex;
-static SDL_AtomicInt s_resourceCount;
+static std::atomic<int> s_resourceCount{0};
 
 GenericResource::GenericResource()
     :   m_resourceIndex(0)
 {
-    SDL_AddAtomicInt(&s_resourceCount, 1);
+    s_resourceCount.fetch_add(1);
 }
 
 GenericResource::~GenericResource()
 {
     NFS2_ASSERT(m_resourceIndex == 0);
-    SDL_AddAtomicInt(&s_resourceCount, -1);
+    s_resourceCount.fetch_sub(1);
 }
 
 void GenericResource::setResourceIndex(x86::reg32 resourceIndex)
@@ -75,10 +82,18 @@ WinApplication::WinApplication(const char* appName, x86::reg32 baseAddress, cons
     allocateResourceFixed(new RegistryKey(), HKEY_PERFORMANCE_NLSTEXT);
     allocateResourceFixed(new RegistryKey(), HKEY_CURRENT_CONFIG);
     allocateResourceFixed(new RegistryKey(), HKEY_DYN_DATA);
+#ifdef NFS_IOS
+    com::InitialiseComMemory(this);
+#endif
 }
 
 WinApplication::~WinApplication()
 {
+#ifdef NFS_IOS
+    terminate();
+    nfsios::shutdownServices(this);
+#endif
+    delete m_env;
     delete m_appNameW;
     delete m_appName;
     m_resourceContext->lock();
@@ -95,7 +110,7 @@ WinApplication::~WinApplication()
     delete m_resourceContext;
     delete m_executionContext;
     /*delete[] m_methods;*/
-    NFS2_ASSERT(SDL_GetAtomicInt(&s_resourceCount) == 0);
+    NFS2_ASSERT(s_resourceCount.load() == 0);
 }
 
 void WinApplication::addRegistryKey(x86::reg32 root, const char* keyname, const char* valuename, RegistryValue* value)
@@ -182,6 +197,24 @@ void WinApplication::registerMethod(x86::reg32 pointer, Method method)
     NFS2_ASSERT(m_methods.find(pointer-0x400000) == m_methods.end());
     m_methods[pointer-0x400000] = method;
 }
+
+#ifdef NFS_IOS
+bool WinApplication::freeResourceIfPresent(x86::reg32 resource)
+{
+    m_resourceContext->lock();
+    auto found = m_resources.find(resource);
+    bool present = found != m_resources.end();
+    if (present)
+    {
+        auto value = found->second;
+        m_resources.erase(found);
+        value->setResourceIndex(0);
+        delete value;
+    }
+    m_resourceContext->unlock();
+    return present;
+}
+#endif
 
 int WinApplication::runThread(x86::CPU& cpu, x86::reg32 entryPoint, x86::reg32 parameter, bool threadLock)
 {

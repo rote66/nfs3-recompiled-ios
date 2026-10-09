@@ -1,6 +1,10 @@
 #include <winapi/dinput/idirectinputdevice.h>
 #include <winapi/wrapper.h>
 #include <lib/gamepad.h>
+#ifdef NFS_IOS
+#include "Native.h"
+#include "ForceFeedback.h"
+#endif
 
 
 namespace win32 { namespace dinput
@@ -117,6 +121,16 @@ HRESULT IDirectInputDevice::GetCapabilities(WinApplication* app, x86::CPU& cpu,
     lpDIDevCaps->dwSize = sizeof(DIDEVCAPS);
     lpDIDevCaps->dwFlags = DIDC_ATTACHED | DIDC_POLLEDDATAFORMAT /* | DIDC_FORCEFEEDBACK */;
     lpDIDevCaps->dwDevType = 4;
+#ifdef NFS_IOS
+    if (dynamic_cast<Mouse*>(m_resource)) lpDIDevCaps->dwDevType = 2;
+    if (dynamic_cast<Keyboard*>(m_resource)) lpDIDevCaps->dwDevType = 3;
+    if (dynamic_cast<Gamepad*>(m_resource))
+    {
+        lpDIDevCaps->dwFlags |= DIDC_FORCEFEEDBACK | DIDC_FFATTACK | DIDC_FFFADE | DIDC_STARTDELAY;
+        lpDIDevCaps->dwFFSamplePeriod = 1000;
+        lpDIDevCaps->dwFFMinTimeResolution = 1000;
+    }
+#endif
     lpDIDevCaps->dwButtons = dynamic_cast<Input*>(m_resource)->getButtonCount();
     lpDIDevCaps->dwAxes = dynamic_cast<Input*>(m_resource)->getAxesCount();
     return 0;
@@ -141,6 +155,15 @@ HRESULT IDirectInputDevice::GetProperty(WinApplication* app, x86::CPU& cpu,
     NFS2_USE(cpu);
     NFS2_USE(rguidProp);
     NFS2_USE(pdiph);
+#ifdef NFS_IOS
+    if (pdiph && pdiph->dwSize == 20 && uint32_t(rguidProp) == 12)
+    {
+        auto* pad = dynamic_cast<Gamepad*>(m_resource);
+        if (!pad) return 0x80070057;
+        reinterpret_cast<DWORD*>(pdiph)[4] = nfsios::forceFeedbackGain(pad);
+        return 0;
+    }
+#endif
     //NFS2_ASSERT(false);
     return 1;
 }
@@ -152,6 +175,12 @@ HRESULT IDirectInputDevice::SetProperty(WinApplication* app, x86::CPU& cpu,
     NFS2_USE(cpu);
     NFS2_USE(rguidProp);
     NFS2_USE(pdiph);
+#ifdef NFS_IOS
+    if (pdiph && pdiph->dwSize == 20 && uint32_t(rguidProp) == 12)
+    {
+        nfsios::forceFeedbackGain(dynamic_cast<Gamepad*>(m_resource), reinterpret_cast<const DWORD*>(pdiph)[4]);
+    }
+#endif
     return 0;
 }
 
@@ -172,6 +201,9 @@ HRESULT IDirectInputDevice::Unacquire(WinApplication* app, x86::CPU& cpu)
 HRESULT IDirectInputDevice::GetDeviceState(WinApplication* app, x86::CPU& cpu,
                                            DWORD cbData, LPVOID lpvData)
 {
+#ifdef NFS_IOS
+    nfsios::updateDrivingMode(app, cpu);
+#endif
     NFS2_USE(app);
     NFS2_USE(cpu);
     NFS2_USE(cbData);
@@ -179,6 +211,10 @@ HRESULT IDirectInputDevice::GetDeviceState(WinApplication* app, x86::CPU& cpu,
     app->unlockContext(cpu);
     Gamepad* gamepad = dynamic_cast<Gamepad*>(m_resource);
     memset(lpvData, 0, cbData);
+#ifdef NFS_IOS
+    if (dynamic_cast<Keyboard*>(m_resource)) nfsios::keyboardState(lpvData, cbData);
+    if (dynamic_cast<Mouse*>(m_resource)) nfsios::readMouseState(lpvData, cbData);
+#endif
     if (gamepad)
     {
         NFS2_ASSERT(cbData == sizeof(DIJOYSTATE));
@@ -213,7 +249,12 @@ HRESULT IDirectInputDevice::GetDeviceData(WinApplication* app, x86::CPU& cpu,
     NFS2_USE(pdwInOut);
     NFS2_USE(dwFlags);
     NFS2_ASSERT(dynamic_cast<Mouse*>(m_resource));
+#ifdef NFS_IOS
+    nfsios::updateDrivingMode(app, cpu);
+    *pdwInOut = nfsios::readMouse(app, rgdod, cbObjectData, *pdwInOut, (dwFlags & 1) != 0);
+#else
     *pdwInOut = 0;
+#endif
     return 0;
 }
 
@@ -312,20 +353,30 @@ HRESULT IDirectInputDevice::CreateEffect(WinApplication* app, x86::CPU& cpu,
     NFS2_USE(lpeff);
     NFS2_USE(ppdeff);
     NFS2_USE(punkOuter);
+#ifdef NFS_IOS
+    if (punkOuter) return 0x80040110;
+    return nfsios::createForceEffect(app, cpu, dynamic_cast<Gamepad*>(m_resource), rguid, lpeff, ppdeff);
+#else
     NFS2_ASSERT(false);
     return 1;
+#endif
 }
 
 HRESULT IDirectInputDevice::EnumEffects(WinApplication* app, x86::CPU& cpu,
-                                        LPDIENUMEFFECTSCALLBACK lpCallback, LPVOID pvRef, DWORD dwEffType)
+                                        LPDIENUMEFFECTSCALLBACK lpCallback, x86::reg32 pvRef, DWORD dwEffType)
 {
     NFS2_USE(app);
     NFS2_USE(cpu);
     NFS2_USE(lpCallback);
     NFS2_USE(pvRef);
     NFS2_USE(dwEffType);
+#ifdef NFS_IOS
+    if (!dynamic_cast<Gamepad*>(m_resource)) return 0;
+    return nfsios::enumerateForceEffects(app, cpu, lpCallback, pvRef, dwEffType);
+#else
     NFS2_ASSERT(false);
     return 1;
+#endif
 }
 
 HRESULT IDirectInputDevice::GetEffectInfo(WinApplication* app, x86::CPU& cpu,
@@ -335,8 +386,12 @@ HRESULT IDirectInputDevice::GetEffectInfo(WinApplication* app, x86::CPU& cpu,
     NFS2_USE(cpu);
     NFS2_USE(pdei);
     NFS2_USE(rguid);
+#ifdef NFS_IOS
+    return nfsios::forceEffectInfo(pdei, rguid);
+#else
     NFS2_ASSERT(false);
     return 1;
+#endif
 }
 
 HRESULT IDirectInputDevice::GetForceFeedbackState(WinApplication* app, x86::CPU& cpu,
@@ -345,8 +400,15 @@ HRESULT IDirectInputDevice::GetForceFeedbackState(WinApplication* app, x86::CPU&
     NFS2_USE(app);
     NFS2_USE(cpu);
     NFS2_USE(pdwOut);
+#ifdef NFS_IOS
+    auto* pad = dynamic_cast<Gamepad*>(m_resource);
+    if (!pad || !pdwOut) return 0x80070057;
+    *pdwOut = nfsios::forceFeedbackState(pad);
+    return 0;
+#else
     NFS2_ASSERT(false);
     return 1;
+#endif
 }
 
 HRESULT IDirectInputDevice::SendForceFeedbackCommand(WinApplication* app, x86::CPU& cpu,
@@ -355,6 +417,10 @@ HRESULT IDirectInputDevice::SendForceFeedbackCommand(WinApplication* app, x86::C
     NFS2_USE(app);
     NFS2_USE(cpu);
     NFS2_USE(dwFlags);
+#ifdef NFS_IOS
+    if (dwFlags != 1 && dwFlags != 2 && dwFlags != 4 && dwFlags != 8 && dwFlags != 16 && dwFlags != 32) return 0x80070057;
+    nfsios::forceFeedbackCommand(dynamic_cast<Gamepad*>(m_resource), dwFlags);
+#endif
     return 0;
 }
 

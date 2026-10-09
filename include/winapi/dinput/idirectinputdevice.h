@@ -107,6 +107,7 @@ private:
     };
     typedef DIDEVICEINSTANCE* LPDIDEVICEINSTANCE;
 
+public:
     struct DIENVELOPE
     {
         DWORD dwSize;
@@ -147,6 +148,7 @@ private:
     };
     typedef DIEffectInfo* LPDIEffectInfo;
 
+private:
     struct DIEFFESCAPE
     {
         DWORD           dwSize;
@@ -192,7 +194,7 @@ private:
     HRESULT CreateEffect(WinApplication* app, x86::CPU& cpu,
                          REFGUID rguid, LPCDIEFFECT lpeff, Packed<IUnknown>* ppdeff, LPUNKNOWN punkOuter);
     HRESULT EnumEffects(WinApplication* app, x86::CPU& cpu,
-                        LPDIENUMEFFECTSCALLBACK lpCallback, LPVOID pvRef, DWORD dwEffType);
+                        LPDIENUMEFFECTSCALLBACK lpCallback, x86::reg32 pvRef, DWORD dwEffType);
     HRESULT GetEffectInfo(WinApplication* app, x86::CPU& cpu,
                           LPDIEffectInfo pdei, REFGUID rguid);
     HRESULT GetForceFeedbackState(WinApplication* app, x86::CPU& cpu,

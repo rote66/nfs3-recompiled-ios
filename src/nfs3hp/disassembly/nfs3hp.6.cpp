@@ -3049,7 +3049,11 @@ L_0x00426deb:
         goto L_0x00426e02;
     }
     // 00426dfb  c74064602e4500         -mov dword ptr [eax + 0x64], 0x452e60
+#ifdef NFS_IOS
+    app->getMemory<x86::reg8>(cpu.eax + 5) |= x86::reg8(16);
+#else
     app->getMemory<x86::reg32>(cpu.eax + x86::reg32(100) /* 0x64 */) = 4533856 /*0x452e60*/;
+#endif
 L_0x00426e02:
     // 00426e02  ba48705300             -mov edx, 0x537048
     cpu.edx = 5468232 /*0x537048*/;

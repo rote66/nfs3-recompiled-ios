@@ -1,6 +1,6 @@
 #include <cpu.h>
 //#include <intrin.h>
-#include <SDL3/SDL.h>
+#include <lib/platform.h>
 #include <cstring>
 
 namespace x86
@@ -9,8 +9,12 @@ namespace x86
 void CPU::rdtsc()
 {
     // Emulate a 2GHz CPU
-    uint64_t counter = SDL_GetPerformanceCounter();
-    uint64_t freq = SDL_GetPerformanceFrequency();
+#ifdef NFS_IOS
+    uint64_t counter = win32::platform::guestNanoseconds();
+#else
+    uint64_t counter = win32::platform::nanoseconds();
+#endif
+    uint64_t freq = 1000000000;
     edx_eax = (uint64_t)((double)counter * 2000000000.0 / (double)freq);
 }
 

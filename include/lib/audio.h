@@ -2,7 +2,7 @@
 #define LIB_AUDIO_H_
 #include <lib/winapp.h>
 #include <lib/memmap.h>
-#include <SDL3/SDL.h>
+#include <lib/platform.h>
 
 
 namespace win32
@@ -18,13 +18,24 @@ public:
 
     void play(AudioBuffer* buffer);
     void stop(AudioBuffer* buffer);
+#ifdef NFS_IOS
+    void render(float* left, float* right, unsigned frames);
+    void* stream() const { return m_stream; }
+#else
     SDL_AudioStream* stream() const { return m_stream; }
+#endif
 
 private:
+#ifndef NFS_IOS
     static void audioCallback22050(void *userdata, SDL_AudioStream *stream, int additional_amount, int total_amount);
+#endif
 
 private:
+#ifdef NFS_IOS
+    void* m_stream;
+#else
     SDL_AudioStream*            m_stream;
+#endif
     std::vector<AudioBuffer*>   m_playingBuffers;
 };
 
@@ -54,8 +65,13 @@ private:
     MemMap*         m_memmap;
     MemMap*         m_bufferMap;
     x86::sreg16*    m_buffer;
+#ifdef NFS_IOS
+    std::atomic<x86::reg32> m_playStart;
+    std::atomic<x86::reg32> m_playStop;
+#else
     x86::reg32      m_playStart;
     x86::reg32      m_playStop;
+#endif
     bool            m_primary;
 };
 

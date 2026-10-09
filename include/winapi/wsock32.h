@@ -73,8 +73,8 @@ int getsockname(WinApplication* app, x86::CPU& cpu,
                 SOCKET s, sockaddr* name, int *namelen);
 int bind(WinApplication* app, x86::CPU& cpu,
          SOCKET s, const sockaddr* name, int namelen);
-unsigned short htons(WinApplication* app, x86::CPU& cpu, unsigned short hostshort);
-unsigned short ntohs(WinApplication* app, x86::CPU& cpu, unsigned short netshort);
+unsigned short (htons)(WinApplication* app, x86::CPU& cpu, unsigned short hostshort);
+unsigned short (ntohs)(WinApplication* app, x86::CPU& cpu, unsigned short netshort);
 unsigned long inet_addr(WinApplication* app, x86::CPU& cpu, const char *cp);
 Packed<char> inet_ntoa(WinApplication* app, x86::CPU& cpu, x86::reg32 in);
 int setsockopt(WinApplication* app, x86::CPU& cpu,

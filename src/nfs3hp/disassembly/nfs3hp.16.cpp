@@ -16900,6 +16900,11 @@ void Application::sub_45cdc0(WinApplication* app, x86::CPU& cpu)
     (app->getMemory<x86::reg8>(cpu.eax)) += x86::reg8(x86::sreg8(cpu.al));
     // 0045cdce  0000                   -add byte ptr [eax], al
     (app->getMemory<x86::reg8>(cpu.eax)) += x86::reg8(x86::sreg8(cpu.al));
+    sub_45cdd0(app, cpu);
+}
+
+void Application::sub_45cdd0(WinApplication* app, x86::CPU& cpu)
+{
     // 0045cdd0  51                     -push ecx
     app->getMemory<x86::reg32>(cpu.esp-4) = cpu.ecx;
     cpu.esp -= 4;

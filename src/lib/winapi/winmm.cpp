@@ -45,6 +45,9 @@ MMRESULT timeGetDevCaps(WinApplication* app, x86::CPU& cpu,
 MMRESULT timeKillEvent(WinApplication* app, x86::CPU& cpu,
                        UINT uTimerID)
 {
+#ifdef NFS_IOS
+    win32::Timer::cancelEvent(app, cpu, uTimerID);
+#else
     NFS2_USE(cpu);
     win32::Timer* timer = dynamic_cast<win32::Timer*>(app->getResource(uTimerID));
     if (timer)
@@ -52,6 +55,7 @@ MMRESULT timeKillEvent(WinApplication* app, x86::CPU& cpu,
         timer->cancel();
         app->freeResource(uTimerID);
     }
+#endif
     return 0;
 }
 
@@ -65,7 +69,15 @@ MMRESULT timeSetEvent(WinApplication* app, x86::CPU& cpu,
     if (!cpu.terminate)
     {
         win32::Timer* timer = new win32::Timer(uDelay, app, lpTimeProc, dwUser);
-        return app->allocateResource(timer);
+        auto handle = app->allocateResource(timer);
+#ifdef NFS_IOS
+        if (!timer->start())
+        {
+            app->freeResource(handle);
+            return 0;
+        }
+#endif
+        return handle;
     }
     else
         return 0;

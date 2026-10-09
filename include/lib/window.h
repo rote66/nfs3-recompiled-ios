@@ -3,15 +3,17 @@
 
 #include <lib/winapp.h>
 #include <winapi/types.h>
-#include <SDL3/SDL.h>
+#include <lib/platform.h>
 
 namespace win32
 {
 
+#ifndef NFS_IOS
 extern Uint32 g_userEvent;
 extern Uint32 g_userEvent1;
 extern Uint32 g_userEvent2;
 extern Uint32 g_wmCharEvent;
+#endif
 
 class WindowClass : public GenericResource
 {
@@ -36,7 +38,11 @@ public:
     static x86::reg32 getMessageHandler();
 
 private:
+#ifdef NFS_IOS
+    void* m_window;
+#else
     SDL_Window*     m_window;
+#endif
 };
 
 }

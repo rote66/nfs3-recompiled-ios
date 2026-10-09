@@ -1,5 +1,8 @@
 #include "nfs3hp.h"
 #include <lib/thread.h>
+#ifdef NFS_IOS
+#include "Native.h"
+#endif
 
 namespace nfs3hp
 {
@@ -9309,6 +9312,9 @@ L_0x004a33f7:
 /* align: skip 0x8d 0x40 0x00 0x8b 0xc9 */
 void Application::sub_4a3400(WinApplication* app, x86::CPU& cpu)
 {
+#ifdef NFS_IOS
+    nfsios::setRaceActive(true);
+#endif
   NFS2_USE(cpu);
   NFS2_USE(app);
     // 004a3400  53                     -push ebx
@@ -9815,6 +9821,9 @@ L_0x004a35c4:
 /* align: skip 0x8d 0x40 0x00 0x8b 0xc9 */
 void Application::sub_4a35d0(WinApplication* app, x86::CPU& cpu)
 {
+#ifdef NFS_IOS
+    nfsios::setRaceActive(false);
+#endif
   NFS2_USE(cpu);
   NFS2_USE(app);
     // 004a35d0  53                     -push ebx

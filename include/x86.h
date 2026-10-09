@@ -4,13 +4,16 @@
 #include    <cstdint>
 #include    <cstdlib>
 
-#ifdef _MSC_VER
+#ifdef NFS_IOS
+namespace nfsios { [[noreturn]] void assertionFailed(const char* expression, const char* file, unsigned line); }
+# define NFS2_ASSERT(x) do { if (!(x)) nfsios::assertionFailed(#x, __FILE__, __LINE__); } while (false)
+#elif defined(_MSC_VER)
 # define __restrict__ __restrict
 # define NFS2_ASSERT(x)         \
     if (! (x)) __debugbreak()
 #else
 # define NFS2_ASSERT(x)         \
-    if (! (x)) asm("int3")
+    if (! (x)) __builtin_trap()
 #endif
 #define NFS2_USE(x)             \
     (void)x

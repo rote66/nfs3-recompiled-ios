@@ -2,7 +2,10 @@
 #include <x86.h>
 #include <lib/window.h>
 #include <cctype>
-#include <SDL3/SDL.h>
+#include <lib/platform.h>
+#ifdef NFS_IOS
+#include "Native.h"
+#endif
 
 namespace win32 { namespace user32
 {
@@ -322,6 +325,10 @@ int GetSystemMetrics(WinApplication* app, x86::CPU& cpu,
         return 800;
     case 1: //SM_CYSCREEN
         return 600;
+#ifdef NFS_IOS
+    case 63:
+        return 0;
+#endif
     default:
         NFS2_ASSERT(false);
         return 0;
@@ -373,11 +380,16 @@ int MessageBoxA(WinApplication* app, x86::CPU& cpu,
     NFS2_USE(app);
     NFS2_USE(cpu);
     NFS2_USE(hWnd);
+#ifdef NFS_IOS
+    NFS2_USE(uType);
+    platform::showMessage(lpCaption, lpText);
+#else
     Uint32 type = 0;
     if (uType & 0x0001) type |= SDL_MESSAGEBOX_ERROR;
     if (uType & 0x0002) type |= SDL_MESSAGEBOX_WARNING;
     if (uType & 0x0000) type |= SDL_MESSAGEBOX_INFORMATION;
     SDL_ShowSimpleMessageBox(type, lpCaption, lpText, nullptr);
+#endif
     return 0;
 }
 
@@ -467,10 +479,15 @@ BOOL SetCursorPos(WinApplication* app, x86::CPU& cpu,
 {
     NFS2_USE(app);
     NFS2_USE(cpu);
+#ifdef NFS_IOS
+    nfsios::setCursorPosition(X, Y);
+    return 1;
+#else
     NFS2_USE(X);
     NFS2_USE(Y);
     NFS2_ASSERT(false);
     return 0;
+#endif
 }
 
 BOOL SetForegroundWindow(WinApplication* app, x86::CPU& cpu,

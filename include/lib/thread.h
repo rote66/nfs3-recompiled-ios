@@ -2,7 +2,8 @@
 #define LIB_THREAD_H_
 
 #include <lib/winapp.h>
-#include <SDL3/SDL.h>
+#include <lib/platform.h>
+#include <memory>
 
 struct SDL_Thread;
 
@@ -32,6 +33,10 @@ private:
     static int run(void* parameter);
 
 private:
+#ifdef NFS_IOS
+    struct NativeThread;
+    std::shared_ptr<NativeThread> m_native;
+#else
     struct Data
     {
         Data(WinApplication* app, x86::reg32 entryPoint, x86::reg32 parameter, x86::reg32 flags);
@@ -47,9 +52,9 @@ private:
     Data            m_data;
     SDL_Thread*     m_thread;
     x86::CPU        m_cpu;
+#endif
 };
 
 }
 
 #endif
-

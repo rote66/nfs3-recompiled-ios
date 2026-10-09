@@ -1,5 +1,5 @@
 #include <lib/memmap.h>
-#include <SDL3/SDL.h>
+#include <lib/platform.h>
 #include <vector>
 #ifdef _WIN32
 # include <windows.h>
@@ -29,7 +29,13 @@ static void* alloc(x86::reg32 size)
 #ifdef _WIN32
     return VirtualAlloc(0, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 #else
-    void* p = mmap(nullptr, size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+    void* p = mmap(nullptr, size,
+#ifdef NFS_IOS
+        PROT_READ | PROT_WRITE,
+#else
+        PROT_NONE,
+#endif
+        MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
     NFS2_ASSERT(p != MAP_FAILED);
     return p;
 #endif
@@ -53,6 +59,12 @@ static void protect(void* mem, x86::reg32 size, bool read, bool write)
     NFS2_USE(read);
     NFS2_USE(write);
 #else
+#ifdef NFS_IOS
+    NFS2_USE(mem);
+    NFS2_USE(size);
+    NFS2_USE(read);
+    NFS2_USE(write);
+#else
     int protection = PROT_NONE;
     if (read)
         protection |= PROT_READ;
@@ -63,6 +75,7 @@ static void protect(void* mem, x86::reg32 size, bool read, bool write)
     x86::reg32 alignedSize = ((addr - alignedAddr) + size + 4095) & ~4095u;
     int ret = mprotect(reinterpret_cast<void*>(alignedAddr), alignedSize, protection);
     NFS2_ASSERT(ret == 0);
+#endif
 #endif
 }
 
@@ -91,6 +104,7 @@ MemMap::MemMap(x86::reg32 size)
             break;
         }
     }
+    NFS2_ASSERT(m_block != x86::reg32(-1));
     for (x86::reg32 s = m_block; s < m_block + m_blockCount; ++s)
     {
         s_blocks[s] = 1;
@@ -171,6 +185,7 @@ x86::reg8* MemMap::init(x86::reg32 baseAddress, const std::vector<Section>& sect
 
 void MemMap::fini()
 {
+    x86::reg32 allocationSize = s_simulatedMemory + s_blockSize + s_sectionSize;
     std::vector<MemMap*> memMapsCopy(s_memMaps);
     for (std::vector<MemMap*>::iterator it = memMapsCopy.begin(); it != memMapsCopy.end(); ++it)
     {
@@ -183,7 +198,8 @@ void MemMap::fini()
     s_addressOffset = 0;
     delete s_lock;
     s_lock = nullptr;
-    dealloc(s_memory, s_simulatedMemory + s_blockSize + s_sectionSize);
+    dealloc(s_memory, allocationSize);
+    s_memory = nullptr;
 }
 
 void MemMap::fillDebugGraph(x86::reg16* graph)

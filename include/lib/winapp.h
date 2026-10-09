@@ -8,7 +8,7 @@
 #include    <map>
 #include    <string>
 #include    <unordered_map>
-#include    <SDL3/SDL.h>
+#include    <lib/platform.h>
 
 namespace win32
 {
@@ -142,6 +142,9 @@ class WinApplication
 public:
     GenericResource* getResource(x86::reg32 resource);
     void freeResource(x86::reg32 resource);
+#ifdef NFS_IOS
+    bool freeResourceIfPresent(x86::reg32 resource);
+#endif
     x86::reg32 allocateResource(GenericResource* resource);
     x86::reg32 getAppName() const { return m_appName->getBlockStart(); }
     x86::reg32 getAppNameW() const { return m_appNameW->getBlockStart(); }
@@ -166,7 +169,17 @@ public:
 public:
     inline void dynamic_call(uint32_t address, x86::CPU& cpu)
     {
+#ifdef NFS_IOS
+        auto found = m_methods.find(address-0x400000);
+        if (found == m_methods.end() || !found->second.method)
+        {
+            platform::log("NFS3_GUEST_CALL_ERROR: address=%08x ip=%08x esp=%08x eax=%08x", address, cpu.ip, cpu.esp, cpu.eax);
+            NFS2_ASSERT(found != m_methods.end() && found->second.method);
+        }
+        const win32::Method& m = found->second;
+#else
         const win32::Method& m = m_methods.find(address-0x400000)->second;
+#endif
         //SDL_LogDebug("[%lu] Calling method: %s", SDL_ThreadID(), m.name.c_str());
         m(this, cpu);
     }
