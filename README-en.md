@@ -127,6 +127,17 @@ The launcher's **Manual Throttle / Brake** switch selects between two tilt modes
 
 The launcher includes a vibration switch. The game's Force Feedback is connected to Core Haptics. Actual vibration depends on device support, input mode, and game settings.
 
+### LAN multiplayer
+
+1. Install this LAN-enabled version on every device, connect to the same Wi-Fi, and use matching original game data, cars and tracks.
+2. Launch the game, open the original **Connect Players** menu and select **IPX**.
+3. One player creates a game and the others find and join it. The host then starts the race. Player limits and race modes follow the original game.
+4. Allow **Local Network** access when first opening the multiplayer menu. If access was denied, enable it in **Settings → NFS3 → Local Network**, then re-enter the multiplayer menu. The Local Network setting appears after an actual access request.
+
+Bonjour discovers devices automatically and UDP carries the original IPX packets. No IP address or external server is required. Wi-Fi must permit devices to communicate; guest networks with client isolation cannot be used. Keep the game in the foreground during multiplayer: backgrounding pauses the local game and other players may consider it disconnected.
+
+This transport connects iOS / iPadOS devices running this version.
+
 ### Back button and background behavior
 
 - The back button in the upper-left corner sends a back / exit action to the game. When the game exits, the App returns to the launcher automatically.
@@ -155,6 +166,4 @@ Normal builds use the existing sources directly. Running the disassembly generat
 
 ## Current limitations and testing
 
-The minimum deployment version is iOS / iPadOS 14.0. Testing has only been confirmed on an iPhone SE (3rd generation) running iOS 15.5.
-
-The original game's network multiplayer and online car downloads are currently unavailable.
+The minimum deployment version is iOS / iPadOS 14.0. Previous single-player device testing passed on an iPhone SE (3rd generation) running iOS 15.5.
