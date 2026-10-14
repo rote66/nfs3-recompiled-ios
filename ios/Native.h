@@ -53,6 +53,8 @@ void setRenderDiagnosticHook(void (*hook)(void*, bool), void* context);
 void inputDiagnostic();
 void gameInputDiagnostic();
 void timerDiagnostic();
+void networkDiagnostic(const char* directory);
+void networkPeerDiagnostic();
 bool audioDiagnostic();
 void filesystemDiagnostic();
 }

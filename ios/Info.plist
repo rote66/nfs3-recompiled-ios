@@ -16,8 +16,8 @@
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleDevelopmentRegion</key><string>en</string>
 <key>CFBundleLocalizations</key><array><string>en</string><string>zh-Hans</string><string>zh-Hant</string></array>
-<key>CFBundleShortVersionString</key><string>0.1.19</string>
-<key>CFBundleVersion</key><string>20</string>
+<key>CFBundleShortVersionString</key><string>0.1.22</string>
+<key>CFBundleVersion</key><string>23</string>
 <key>MinimumOSVersion</key><string>14.0</string>
 <key>LSRequiresIPhoneOS</key><true/>
 <key>UIDeviceFamily</key><array><integer>1</integer><integer>2</integer></array>

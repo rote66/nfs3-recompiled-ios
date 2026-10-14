@@ -23,6 +23,49 @@ static NSString* documentsPath()
 }
 static NSString* dataPath() { return [documentsPath() stringByAppendingPathComponent:@"data"]; }
 static NSString* logPath() { return [documentsPath() stringByAppendingPathComponent:@"log"]; }
+#if TARGET_OS_SIMULATOR
+// Test inputs pass through the same original-game input path as touch controls.
+// This bridge is compiled out of the device app and requires an explicit flag.
+static void simulatorTestInput()
+{
+    static BOOL enabled = [NSProcessInfo.processInfo.arguments containsObject:@"--simulator-test-input"];
+    if (!enabled) return;
+    static NSInteger sequence = -1;
+    static BOOL initialized = NO;
+    NSDictionary* command = [NSDictionary dictionaryWithContentsOfFile:
+        [documentsPath() stringByAppendingPathComponent:@"test-input.plist"]];
+    if (!initialized)
+    {
+        initialized = YES;
+        if (command) sequence = [command[@"sequence"] integerValue];
+        return;
+    }
+    if (!command || [command[@"sequence"] integerValue] == sequence) return;
+    sequence = [command[@"sequence"] integerValue];
+    NSString* action = command[@"action"];
+    if ([action isEqualToString:@"key-down"] || [action isEqualToString:@"key-up"])
+        nfsios::key([command[@"key"] unsignedIntValue], [action isEqualToString:@"key-down"]);
+    else if ([action isEqualToString:@"key"])
+    {
+        unsigned value = [command[@"key"] unsignedIntValue];
+        nfsios::key(value, true);
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 120 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
+            nfsios::key(value, false);
+        });
+    }
+    else if ([action isEqualToString:@"click"])
+    {
+        double x = [command[@"x"] doubleValue], y = [command[@"y"] doubleValue];
+        nfsios::pointer(x, y, 1);
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 120 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
+            nfsios::pointer(x, y, 0);
+        });
+    }
+    else if ([action isEqualToString:@"text"])
+        for (NSNumber* character in command[@"characters"]) nfsios::character(character.unsignedIntValue);
+    win32::platform::log("NFS3_SIMULATOR_INPUT: sequence=%ld action=%s", (long)sequence, action.UTF8String);
+}
+#endif
 static BOOL directoryContainsGame(NSString* path)
 {
     NSArray<NSString*>* names = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:path error:nil];
@@ -278,6 +321,8 @@ static UIButton* actionButton(NSString* title, id target, SEL action)
     _osdSwitch = [self addSwitch:@"显示 FPS / CPU / GPU / 内存" value:[defaults boolForKey:@"osd"]];
     _logSwitch = [self addSwitch:@"保存日志" value:[defaults boolForKey:@"logging"]];
     if ([NSProcessInfo.processInfo.arguments containsObject:@"--metal-diagnostic"]) _logSwitch.on = YES;
+    if ([NSProcessInfo.processInfo.arguments containsObject:@"--lan-peer-diagnostic"] ||
+        [NSProcessInfo.processInfo.arguments containsObject:@"--network-diagnostic"]) _logSwitch.on = YES;
     [_stack addArrangedSubview:actionButton(@"编辑触控布局", self, @selector(editLayout))];
     UILabel* notice = [UILabel new];
     notice.text = @"将 FEDATA 和 GAMEDATA 放到「文件」App →「我的 iPhone / iPad」→ NFS3 → data，与 EXE、DLL、install.win 同级。日志保存在 log/log.log。";
@@ -306,6 +351,14 @@ static UIButton* actionButton(NSString* title, id target, SEL action)
     NSArray* arguments = NSProcessInfo.processInfo.arguments;
     if ([arguments containsObject:@"--metal-diagnostic"])
         dispatch_async(dispatch_get_main_queue(), ^{ [self diagnostic]; });
+    if ([arguments containsObject:@"--lan-peer-diagnostic"])
+        dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+            nfsios::networkPeerDiagnostic();
+        });
+    if ([arguments containsObject:@"--network-diagnostic"])
+        dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+            nfsios::networkDiagnostic([NSBundle.mainBundle.resourcePath stringByAppendingPathComponent:@"GameFiles"].UTF8String);
+        });
     if ([arguments containsObject:@"--launch-game"])
         dispatch_async(dispatch_get_main_queue(), ^{ [self startGame]; });
     if ([arguments containsObject:@"--layout-preview"])
@@ -728,6 +781,9 @@ static UIButton* actionButton(NSString* title, id target, SEL action)
 }
 - (void)tick:(CADisplayLink*)link
 {
+#if TARGET_OS_SIMULATOR
+    if (_playing) simulatorTestInput();
+#endif
     nfsios::updateHaptics(_playing && !_overlay);
     if (!_playing && !_editing && !_busy && link.timestamp - _lastDataScanTime > 1)
     {
@@ -1134,6 +1190,7 @@ static UIButton* actionButton(NSString* title, id target, SEL action)
             nfsios::gameInputDiagnostic();
             nfsios::forceFeedbackDiagnostic();
             nfsios::timerDiagnostic();
+            nfsios::networkDiagnostic([NSBundle.mainBundle.resourcePath stringByAppendingPathComponent:@"GameFiles"].UTF8String);
             nfsios::graphicsDiagnostic();
             nfsios::graphicsIntegrationDiagnostic();
             nfsios::graphicsConcurrencyDiagnostic();

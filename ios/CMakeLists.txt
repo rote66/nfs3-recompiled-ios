@@ -41,7 +41,7 @@ foreach(LANGUAGE en zh-Hans zh-Hant)
     list(APPEND LOCALIZED_STRINGS "${INFO_STRINGS}")
 endforeach()
 add_executable(nfs3 MACOSX_BUNDLE ${CORE_SOURCES} ${GAME_SOURCES}
-    Runtime.cpp LANDiscovery.mm ForceFeedback.cpp Haptics.mm ForceFeedbackDiagnostic.cpp MetalBackend.mm GraphicsDiagnostic.mm AudioBackend.mm TouchUI.mm LayoutEditor.mm App.mm "${METALLIB}" ${GAME_FILES} ${APP_ICONS} ${LOCALIZED_STRINGS})
+    Runtime.cpp LANDiscovery.mm NetworkDiagnostic.cpp ForceFeedback.cpp Haptics.mm ForceFeedbackDiagnostic.cpp MetalBackend.mm GraphicsDiagnostic.mm AudioBackend.mm TouchUI.mm LayoutEditor.mm App.mm "${METALLIB}" ${GAME_FILES} ${APP_ICONS} ${LOCALIZED_STRINGS})
 target_include_directories(nfs3 PRIVATE
     "${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/src/nfs3hp/disassembly" "${CMAKE_CURRENT_SOURCE_DIR}")
 target_compile_definitions(nfs3 PRIVATE WITH_MMX)
