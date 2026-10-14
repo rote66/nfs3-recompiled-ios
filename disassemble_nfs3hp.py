@@ -60,7 +60,8 @@ MERGE_ROUTINES = [(0x405740, 0x405791),
                   (0x420840, 0x420aac),
                   (0x420840, 0x420b53),]
 
-KNOWN_SUBROUTINES = [0x4ff3d0,]
+# The IPX transport's ready callback is an indirect entry inside sub_4f5fc0.
+KNOWN_SUBROUTINES = [0x4ff3d0, 0x4f5fd0]
 
 SKIP_INSTRUCTIONS = [0x4a3aec]
 
@@ -69,7 +70,10 @@ SPLIT_INSTRUCTIONS = [0x4e08af, 0x4e087a, 0x4eee0f]
 
 
 THREAD_ROUTINES = []
-THREAD_SEGMENTS = [0x43ac67, 0x43ac97, 0x46785e, 0x4f06f7, 0x4f2191, 0x495b68, 0x4d9158, 0x4c4e84, 0x4f7d0e]
+THREAD_SEGMENTS = [0x43ac67, 0x43ac97, 0x46785e, 0x4f06f7, 0x4f2191, 0x495b68, 0x4d9158, 0x4c4e84, 0x4f7d0e,
+                   0x4e7748, 0x4a65b4, 0x4a65c8, 0x4a6d37, 0x4a6ab0, 0x4a6b87]
+# Original IPX search / connection waits need the clock and packet workers.
+THREAD_SEGMENT_DELAYS = {0x4e7748: 1, 0x4a65b4: 1, 0x4a65c8: 1, 0x4a6d37: 1, 0x4a6ab0: 1, 0x4a6b87: 1}
 
 if __name__ == '__main__':
     application = disassembler.disassemble('nfs3hp', 'nfs3hp/nfs3.exe', DATA_SEGMENTS,
@@ -86,4 +90,5 @@ if __name__ == '__main__':
                                         data_segments=[(0xa83204, 0xa83210),
                                                        (0xA86833, 0xA868A2)],
                                         known_subroutines=[0xA847D0, 0xA84810], rebase_after=softtria)
-    application.write(THREAD_SEGMENTS, skip_instructions=SKIP_INSTRUCTIONS, dlls=[eacsnd, softtria, voodoo2a])
+    application.write(THREAD_SEGMENTS, skip_instructions=SKIP_INSTRUCTIONS, dlls=[eacsnd, softtria, voodoo2a],
+                      thread_segment_delays=THREAD_SEGMENT_DELAYS)

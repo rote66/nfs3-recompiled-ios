@@ -5,7 +5,7 @@ class Application(Module):
     def __init__(self, application_name, exe_path, rebase_after):
         Module.__init__(self, application_name, exe_path, rebase_after)
 
-    def write(self, thread_segments=[], skip_instructions=[], dlls=[], function_names={}):
+    def write(self, thread_segments=[], skip_instructions=[], dlls=[], function_names={}, thread_segment_delays=None):
         try:
             os.makedirs('src/%s/disassembly' % (self.application_name))
         except OSError:
@@ -125,9 +125,10 @@ class Application(Module):
                             if function_entry != function_start and instruction.address == function_entry:
                                 methods.write('L_entry_0x%08x:\n' % (instruction.address))
                             if instruction.address in thread_segments:
+                                delay = (thread_segment_delays or {}).get(instruction.address, 0)
                                 methods.write('    app->unlockContext(cpu);\n'
-                                              '    win32::Thread::sleep(0);\n'
-                                              '    app->lockContext(cpu);\n')
+                                              '    win32::Thread::sleep(%d);\n'
+                                              '    app->lockContext(cpu);\n' % delay)
                             methods.write('    // %s\n'
                                           '    %s%s\n'  % (self._raw(subroutine.section, instruction),
                                                            (instruction.address in skip_instructions) and '//' or '',
