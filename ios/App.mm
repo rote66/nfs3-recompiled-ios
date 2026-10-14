@@ -285,6 +285,12 @@ static UIButton* actionButton(NSString* title, id target, SEL action)
     notice.font = [UIFont systemFontOfSize:12];
     notice.numberOfLines = 0;
     [_stack addArrangedSubview:notice];
+    UILabel* lanNotice = [UILabel new];
+    lanNotice.text = NSLocalizedString(@"lan.help", nil);
+    lanNotice.textColor = [UIColor colorWithWhite:0.6 alpha:1];
+    lanNotice.font = [UIFont systemFontOfSize:12];
+    lanNotice.numberOfLines = 0;
+    [_stack addArrangedSubview:lanNotice];
     _motion = [CMMotionManager new];
     _tiltButton.enabled = _motion.deviceMotionAvailable;
     _tiltButton.alpha = _tiltButton.enabled ? 1 : 0.35;

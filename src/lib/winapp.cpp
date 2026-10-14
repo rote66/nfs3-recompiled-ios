@@ -3,6 +3,8 @@
 #include <lib/mutex.h>
 #include <lib/event.h>
 #include <lib/library.h>
+#include <lib/socket.h>
+#include <lib/thread.h>
 #include <lib/registry.h>
 #include <winapi/types.h>
 #include <lib/platform.h>
@@ -97,6 +99,7 @@ WinApplication::~WinApplication()
         delete it->second;
     }
     m_resourceContext->unlock();
+    Socket::cleanup(this);
     Event::fini();
     MemMap::fini();
     delete m_resourceContext;
@@ -213,6 +216,7 @@ int WinApplication::runThread(x86::CPU& cpu, x86::reg32 entryPoint, x86::reg32 p
         win32::MemMap threadStorage(4096);
         win32::MemMap threadStack(1024 * 1024);
         cpu.init(threadStorage.getBlockStart(), entryPoint);
+        getMemory<x86::reg32>(cpu.efs + 4) = Thread::currentThreadId();
         getMemory<Mutex*>(cpu.efs + 8) = threadLock ? m_executionContext : nullptr;
         LockContext ctx(*this, cpu);
         cpu.esp = threadStack.getBlockStart() + threadStack.getBlockSize() - 8;

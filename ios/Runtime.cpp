@@ -1,5 +1,6 @@
 #include "Native.h"
 #include "ForceFeedback.h"
+#include "LANDiscovery.h"
 #include <lib/window.h>
 #include <lib/thread.h>
 #include <lib/timer.h>
@@ -703,6 +704,7 @@ void runGame(const char* directory, bool initializeControls, DrivingMode mode)
         setActive(true);
         { std::lock_guard<std::mutex> guard(applicationMutex); application = nullptr; }
     }
+    stopLANAccess();
     releaseInput();
     setRaceActive(false);
     driving = false; textEntry = false;

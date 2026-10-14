@@ -24,3 +24,4 @@
 "Cancel" = "Cancel";
 "tilt.manual" = "Tilt mode 2";
 "tilt.manual.hint" = "Off: automatic throttle and screen braking. On: manual throttle and brake buttons.";
+"lan.help" = "LAN: connect to the same Wi-Fi, then open Connect Players → IPX in the game. One player hosts and the others join. Allow Local Network access when prompted.";

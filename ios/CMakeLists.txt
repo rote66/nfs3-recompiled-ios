@@ -36,9 +36,12 @@ foreach(LANGUAGE en zh-Hans zh-Hant)
     set(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/Resources/${LANGUAGE}.lproj/Localizable.strings")
     set_source_files_properties("${STRINGS}" PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/${LANGUAGE}.lproj")
     list(APPEND LOCALIZED_STRINGS "${STRINGS}")
+    set(INFO_STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/Resources/${LANGUAGE}.lproj/InfoPlist.strings")
+    set_source_files_properties("${INFO_STRINGS}" PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/${LANGUAGE}.lproj")
+    list(APPEND LOCALIZED_STRINGS "${INFO_STRINGS}")
 endforeach()
 add_executable(nfs3 MACOSX_BUNDLE ${CORE_SOURCES} ${GAME_SOURCES}
-    Runtime.cpp ForceFeedback.cpp Haptics.mm ForceFeedbackDiagnostic.cpp MetalBackend.mm GraphicsDiagnostic.mm AudioBackend.mm TouchUI.mm LayoutEditor.mm App.mm "${METALLIB}" ${GAME_FILES} ${APP_ICONS} ${LOCALIZED_STRINGS})
+    Runtime.cpp LANDiscovery.mm ForceFeedback.cpp Haptics.mm ForceFeedbackDiagnostic.cpp MetalBackend.mm GraphicsDiagnostic.mm AudioBackend.mm TouchUI.mm LayoutEditor.mm App.mm "${METALLIB}" ${GAME_FILES} ${APP_ICONS} ${LOCALIZED_STRINGS})
 target_include_directories(nfs3 PRIVATE
     "${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/src/nfs3hp/disassembly" "${CMAKE_CURRENT_SOURCE_DIR}")
 target_compile_definitions(nfs3 PRIVATE WITH_MMX)

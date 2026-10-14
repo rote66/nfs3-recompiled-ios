@@ -37,5 +37,7 @@
 </dict></array>
 </dict></dict>
 <key>NSMotionUsageDescription</key><string>Device motion provides optional steering while driving.</string>
+<key>NSLocalNetworkUsageDescription</key><string>Find other NFS3 players and race together on your local Wi-Fi network.</string>
+<key>NSBonjourServices</key><array><string>_nfs3-lan._udp</string></array>
 <key>UILaunchScreen</key><dict/>
 </dict></plist>
